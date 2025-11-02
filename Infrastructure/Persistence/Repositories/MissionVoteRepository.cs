@@ -8,18 +8,24 @@ public class MissionVoteRepository (ApplicationDbContext db) : IMissionVoteRepos
 {
     public async Task AddMissionVoteAsync(MissionVote missionVote)
     {
-        await db.AddAsync(missionVote);
+        await db.AddAsync(missionVote)
+            .ConfigureAwait(false);
+
     }
 
     public async Task<List<MissionVote>> GetByRoundIdAsync(int roundId)
     {
         return await db.MissionVotes
             .Where(v => v.RoundId == roundId)
-            .ToListAsync();
+            .ToListAsync()
+            .ConfigureAwait(false);
+
     }
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync()
+            .ConfigureAwait(false);
+
     }
 }

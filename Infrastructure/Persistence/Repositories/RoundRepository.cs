@@ -9,12 +9,16 @@ public class RoundRepository(ApplicationDbContext db) : IRoundRepository
 {
     public async Task AddRoundAsync(Round round)
     {
-        await db.Rounds.AddAsync(round);
+        await db.Rounds.AddAsync(round)
+            .ConfigureAwait(false);
+
     }
 
     public async Task UpdateRoundStatus(int roundId, RoundStatus status)
     {
-        var round = await db.Rounds.FindAsync(roundId);
+        var round = await db.Rounds.FindAsync(roundId)
+            .ConfigureAwait(false);
+        
         if (round != null)
         {
             round.Status = status;
@@ -23,7 +27,9 @@ public class RoundRepository(ApplicationDbContext db) : IRoundRepository
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync()
+            .ConfigureAwait(false);
+
     }
 
     public async Task<Round> GetCurrentRoundSnapshot(int gameId, int roundNumber)
@@ -35,7 +41,9 @@ public class RoundRepository(ApplicationDbContext db) : IRoundRepository
                     .ThenInclude(tp => tp.Votes)        
                 .Include(r => r.Teams.Where(tp => tp.IsActive))
                     .ThenInclude(tp => tp.Members)   
-                .SingleAsync(r => r.GameId == gameId && r.RoundNumber == roundNumber);
+                .SingleAsync(r => r.GameId == gameId && r.RoundNumber == roundNumber)
+                .ConfigureAwait(false);
+
         }
         catch (InvalidOperationException ex)
         {

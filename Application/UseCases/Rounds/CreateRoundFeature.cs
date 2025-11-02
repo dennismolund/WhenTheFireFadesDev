@@ -21,8 +21,11 @@ public sealed class CreateRoundFeature(IRoundRepository roundRepository)
             Result = RoundResult.Unknown,
         };
 
-        await roundRepository.AddRoundAsync(round);
-        await roundRepository.SaveChangesAsync();
+        await roundRepository.AddRoundAsync(round)
+            .ConfigureAwait(false);
+
+        await roundRepository.SaveChangesAsync()
+            .ConfigureAwait(false);
 
         return round;
     }

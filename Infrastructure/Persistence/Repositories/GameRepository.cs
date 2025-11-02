@@ -9,7 +9,8 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
 {
     public async Task AddGameAsync(Game game)
     {
-        await db.Games.AddAsync(game);
+        await db.Games.AddAsync(game)
+            .ConfigureAwait(false);
     }
 
     public void DeleteGame(Game game)
@@ -22,7 +23,9 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
         return await db.Games
             .Where(g => g.ConnectionCode == code && 
                         (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync()
+            .ConfigureAwait(false);
+
     }
 
     public async Task<Game?> GetByCodeWithPlayersAsync(string code)
@@ -31,21 +34,27 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
             .Where(g => g.ConnectionCode == code && 
                         (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))            
             .Include(g => g.Players)
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync()
+            .ConfigureAwait(false);
+
     }
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync()
+            .ConfigureAwait(false);
+
     }
 
-    public Task<Game?> GetByCodeWithPlayersAndRoundsAsync(string code)
+    public async Task<Game?> GetByCodeWithPlayersAndRoundsAsync(string code)
     {
-        return db.Games
+        return await db.Games
             .Where(g => g.ConnectionCode == code && 
                         (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))            
             .Include(g => g.Players)
             .Include(g => g.Rounds)
-            .SingleOrDefaultAsync(g => g.ConnectionCode == code);
+            .SingleOrDefaultAsync(g => g.ConnectionCode == code)
+            .ConfigureAwait(false);
+
     }
 }
