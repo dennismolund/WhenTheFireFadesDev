@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -11,19 +12,26 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
         await db.Games.AddAsync(game);
     }
 
+    public void DeleteGame(Game game)
+    {
+        db.Games.Remove(game);
+    }
+
     public async Task<Game?> GetByCodeAsync(string code)
     {
         return await db.Games
-            .FirstOrDefaultAsync(g => g.ConnectionCode == code);
+            .Where(g => g.ConnectionCode == code && 
+                        (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))
+            .SingleOrDefaultAsync();
     }
 
     public async Task<Game?> GetByCodeWithPlayersAsync(string code)
     {
-        var game = await db.Games
+        return await db.Games
+            .Where(g => g.ConnectionCode == code && 
+                        (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))            
             .Include(g => g.Players)
-            .FirstOrDefaultAsync(g => g.ConnectionCode == code);
-
-        return game;
+            .SingleOrDefaultAsync();
     }
 
     public async Task SaveChangesAsync()
@@ -34,8 +42,10 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
     public Task<Game?> GetByCodeWithPlayersAndRoundsAsync(string code)
     {
         return db.Games
+            .Where(g => g.ConnectionCode == code && 
+                        (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))            
             .Include(g => g.Players)
             .Include(g => g.Rounds)
-            .FirstOrDefaultAsync(g => g.ConnectionCode == code);
+            .SingleOrDefaultAsync(g => g.ConnectionCode == code);
     }
 }

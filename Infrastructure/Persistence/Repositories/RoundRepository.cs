@@ -26,14 +26,24 @@ public class RoundRepository(ApplicationDbContext db) : IRoundRepository
         await db.SaveChangesAsync();
     }
 
-    public async Task<Round?> GetCurrentRoundSnapshot(int gameId, int roundNumber)
+    public async Task<Round> GetCurrentRoundSnapshot(int gameId, int roundNumber)
     {
-        return await db.Rounds
-            .Include(r => r.Teams.Where(tp => tp.IsActive))
-                .ThenInclude(tp => tp.Votes)        
-            .Include(r => r.Teams.Where(tp => tp.IsActive))
-                .ThenInclude(tp => tp.Members)   
-            .FirstOrDefaultAsync(r => r.GameId == gameId && r.RoundNumber == roundNumber);
+        try
+        {
+            return await db.Rounds
+                .Include(r => r.Teams.Where(tp => tp.IsActive))
+                    .ThenInclude(tp => tp.Votes)        
+                .Include(r => r.Teams.Where(tp => tp.IsActive))
+                    .ThenInclude(tp => tp.Members)   
+                .SingleAsync(r => r.GameId == gameId && r.RoundNumber == roundNumber);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new InvalidOperationException(
+                $"Expected exactly one round for game {gameId} and round number {roundNumber}. but found none or many",
+                ex
+            );
+        }
     }
 
 }

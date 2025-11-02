@@ -58,6 +58,10 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasKey("GameId");
 
+                    b.HasIndex("ConnectionCode")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (0, 1)");
+
                     b.ToTable("Games");
                 });
 

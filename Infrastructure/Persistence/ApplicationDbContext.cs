@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithOne(r => r.Game)
                 .HasForeignKey(r => r.GameId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            //Set unique constraint on ConnectionCode for games in lobby or InProgress
+            entity.HasIndex(g => g.ConnectionCode)
+                .HasFilter($"[Status] IN ({(int)GameStatus.Lobby}, {(int)GameStatus.InProgress})")
+                .IsUnique();
                 
         });
 

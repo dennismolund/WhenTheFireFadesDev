@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces;
 using Application.Services;
-using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -15,7 +14,6 @@ public class GameController(
     IGameRepository gameRepository, 
     IGamePlayerRepository gamePlayerRepository,
     IRoundRepository roundRepository,
-    ITeamRepository teamRepository,
     SessionHelper sessionHelper, 
     IHubContext<GameHub> hubContext) : Controller
 {
@@ -61,7 +59,7 @@ public class GameController(
         var authenticatedUserId = sessionHelper.GetAuthenticatedUserId();
         var authenticatedName = sessionHelper.GetAuthenticatedUserName();        
         
-        var existingPlayer = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
+        var existingPlayer = game.Players.SingleOrDefault(p => p.TempUserId == tempUserId);
         
         if (existingPlayer == null)
         {
@@ -69,14 +67,17 @@ public class GameController(
             game = await gameRepository.GetByCodeWithPlayersAsync(code);
         }
         
+        if (game == null)
+        {
+            return NotFound();
+        }
+        
         var viewModel = new LobbyViewModel
         {
             ConnectionCode = code,
             Game = game,
-            CurrentPlayer = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId),
+            CurrentPlayer = game.Players.First(p => p.TempUserId == tempUserId),
             PlayerCount = game.Players.Count,
-            
-            
         };
 
         ViewBag.TempUserId = tempUserId;
@@ -199,8 +200,7 @@ public class GameController(
             return RedirectToAction("Index", "Home");
         }
 
-        var currentRound = await roundRepository.GetCurrentRoundSnapshot(game.GameId, game.RoundCounter)
-                ?? throw new InvalidOperationException("Round not found.");
+        var currentRound = await roundRepository.GetCurrentRoundSnapshot(game.GameId, game.RoundCounter);
 
         var currentLeader = game.Players.First(p => p.Seat == game.LeaderSeat);
 
@@ -242,9 +242,6 @@ public class GameController(
                 }
             }
         }
-
-        
-
         return View(viewModel);
     }
 }

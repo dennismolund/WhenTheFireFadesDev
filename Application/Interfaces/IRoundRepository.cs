@@ -8,5 +8,5 @@ public interface IRoundRepository
     Task AddRoundAsync(Round round);
     Task SaveChangesAsync();
     Task UpdateRoundStatus(int roundId, RoundStatus status);
-    Task<Round?> GetCurrentRoundSnapshot(int gameId, int roundNumber);
+    Task<Round> GetCurrentRoundSnapshot(int gameId, int roundNumber);
 }

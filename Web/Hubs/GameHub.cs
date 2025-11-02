@@ -61,11 +61,11 @@ public class GameHub(
         if (tempUserId == null)
             return;
 
-        var leader = game.Players.FirstOrDefault(p => p.Seat == game.LeaderSeat);
+        var leader = game.Players.SingleOrDefault(p => p.Seat == game.LeaderSeat);
         if (leader == null || leader.TempUserId != tempUserId)
             return;
 
-        var currentRound = game.Rounds.OrderByDescending(r => r.RoundNumber).FirstOrDefault();
+        var currentRound = game.Rounds.SingleOrDefault(r => r.RoundNumber == game.RoundCounter);
         if (currentRound == null)
             return;
 
@@ -126,7 +126,6 @@ public class GameHub(
         if (round == null || round.Status != RoundStatus.VoteOnTeam) return;
 
         var team = await teamRepository.GetActiveByRoundIdAsync(round.RoundId);
-        if (team == null) return;
 
         var existingVotes = await teamVoteRepository.GetByTeamAsync(team.TeamId);
         if (existingVotes.Any(v => v.Seat == voter.Seat))
@@ -208,6 +207,10 @@ public class GameHub(
                 gameResult = GameResult.Shapeshifter
             });
 
+            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
+            gameRepository.DeleteGame(game);
+            await gameRepository.SaveChangesAsync();
+            
             return;
         }
 
@@ -257,7 +260,6 @@ public class GameHub(
         if (round == null || round.Status != RoundStatus.SecretChoices) return;
 
         var team = await teamRepository.GetByRoundIdAsync(round.RoundId);
-        if (team == null) return;
 
         var existingVotes = await missionVoteRepository.GetByRoundIdAsync(round.RoundId);
         if (existingVotes.Any(v => v.Seat == voter.Seat))
@@ -347,15 +349,21 @@ public class GameHub(
 
         if(game.SabotageCount >= GameRules.SabotagesNeededToLose)
         {
+            
             game.Status = GameStatus.Finished;
             game.GameWinner = GameResult.Shapeshifter;
             await gameRepository.SaveChangesAsync();
+            
             await Clients.Group(gameCode).SendAsync("GameEnded", new
             {
                 winner = "Shapeshifters",
                 reason = "3 sabotaged missions",
                 gameResult = GameResult.Shapeshifter
             });
+            
+            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
+            gameRepository.DeleteGame(game);
+            await gameRepository.SaveChangesAsync();
         }
     }
 
@@ -381,6 +389,10 @@ public class GameHub(
                 reason = "3 successful missions",
                 gameResult = GameResult.Human
             });
+            
+            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
+            gameRepository.DeleteGame(game);
+            await gameRepository.SaveChangesAsync();
         }
     }
     public async Task GameStarted(string gameCode)

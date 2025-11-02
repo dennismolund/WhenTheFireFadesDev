@@ -2,6 +2,7 @@ namespace Domain.ValueObjects;
 
 public static class GameCode
 {
+    
     public static string GenerateCode()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

@@ -8,5 +8,6 @@ public interface IGameRepository
     Task<Game?> GetByCodeWithPlayersAsync(string code);
     Task<Game?> GetByCodeWithPlayersAndRoundsAsync(string code);
     Task AddGameAsync(Game game);
+    void DeleteGame(Game game);
     Task SaveChangesAsync();
 }
