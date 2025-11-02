@@ -12,6 +12,9 @@ using Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Removed server header to limit project information to clients.
+builder.WebHost.UseKestrel(options => options.AddServerHeader = false);
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
