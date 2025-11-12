@@ -2,6 +2,8 @@
 
 When the Fire Fades is a web-based social deduction game for exactly five players. Two hidden shapeshifters try to snuff out the campfire while three humans fight to keep it alive by completing missions across five escalating rounds. The solution is organised according to Clean Architecture: the `Domain` project owns the core game rules, `Application` coordinates use cases, `Infrastructure` hosts technical concerns such as persistence and SignalR hubs, and the `Web` project delivers the ASP.NET Core MVC experience.
 
+Game website: https://whenthefirefades-hqeqgxhph8cpgde6.eastasia-01.azurewebsites.net/
+
 ## Table of contents
 - [Getting started](#getting-started)
 - [Game overview](#game-overview)
