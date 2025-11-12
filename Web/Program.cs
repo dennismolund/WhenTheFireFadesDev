@@ -23,8 +23,19 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         connectionString,
-        b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
-        ));
+        sqlOptions =>
+        {
+            sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+            
+            // Enable connection resiliency (retry on transient failures)
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+            
+            // Optional: Set command timeout for cold starts
+            sqlOptions.CommandTimeout(60); // 60 seconds
+        }));
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     {
