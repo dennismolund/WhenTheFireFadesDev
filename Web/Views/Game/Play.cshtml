@@ -1,4 +1,5 @@
-﻿@model Web.ViewModels.PlayViewModel
+﻿@using Domain.Enums
+@model Web.ViewModels.PlayViewModel
 @{
     ViewData["Title"] = "Game In Progress";
 }
@@ -41,11 +42,11 @@
         <!-- Your Role Card -->
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-header @(Model.CurrentPlayer.Role == Domain.Enums.PlayerRole.Human ? "bg-primary" : "bg-danger") text-white">
+                <div class="card-header @(Model.CurrentPlayer.Role == PlayerRole.Human ? "bg-primary" : "bg-danger") text-white">
                     <h4>Your Role</h4>
                 </div>
                 <div class="card-body">
-                    @if (Model.CurrentPlayer.Role == Domain.Enums.PlayerRole.Human)
+                    @if (Model.CurrentPlayer.Role == PlayerRole.Human)
                     {
                         <h3 class="text-primary">👤 Human</h3>
                         <p>You are a loyal human. Your goal is to successfully complete missions and identify the shapeshifter.</p>
@@ -75,7 +76,8 @@
                     <div class="list-group">
                         @foreach (var player in Model.Game.Players.OrderBy(p => p.Seat))
                         {
-                            <div class="list-group-item d-flex justify-content-between align-items-center @(player.Seat == Model.CurrentLeader?.Seat ? "list-group-item-warning" : "")">
+                            <div class="list-group-item d-flex justify-content-between align-items-center 
+                                    @(player.Seat == Model.CurrentLeader?.Seat ? "list-group-item-warning" : "")">
                                 <div>
                                     <strong>@player.Nickname</strong>
                                     <span class="badge bg-secondary">Seat @player.Seat</span>
@@ -87,6 +89,11 @@
                                     {
                                         <span class="badge bg-warning text-dark">👑 Leader</span>
                                     }
+                                    @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer.Role == PlayerRole.Shapeshifter)
+                                    {
+                                        <span>👾</span>
+                                    }
+
                                 </div>
                             </div>
                         }
@@ -154,6 +161,10 @@
                                                         @if (player.TempUserId == Model.CurrentPlayer?.TempUserId)
                                                         {
                                                             <span class="badge bg-info">You</span>
+                                                        }
+                                                        @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer.Role == PlayerRole.Shapeshifter)
+                                                        {
+                                                            <span>👾</span>
                                                         }
                                                     </div>
                                                 </label>
