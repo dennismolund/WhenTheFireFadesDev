@@ -25,35 +25,34 @@ public class GameHub(
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
 
         var game = await gameRepository.GetByCodeWithPlayersAsync(gameCode);
-
-        if (game != null)
+        if (game == null) return;
+        
+        await Clients.Group(gameCode).SendAsync("PlayerJoined", new
         {
-            await Clients.Group(gameCode).SendAsync("PlayerJoined", new
+            players = game.Players.Select(p => new
             {
-                players = game.Players.Select(p => new
-                {
-                    p.TempUserId,
-                    p.Nickname,
-                    p.Seat,
-                    p.IsConnected
-                }).ToList(),
-                totalPlayers = game.Players.Count
-            });
-        }
+                p.TempUserId,
+                p.Nickname,
+                p.Seat,
+                p.IsConnected
+            }).ToList(),
+            totalPlayers = game.Players.Count
+        });
+        
     }
     public async Task JoinGame(string gameCode)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
     }
     
-    public async Task ProposeTeam(string code, List<int> selectedSeats)
+    public async Task ProposeTeam(string gameCode, List<int> selectedSeats)
     {
-        if (string.IsNullOrWhiteSpace(code))
+        if (string.IsNullOrWhiteSpace(gameCode))
             return;
 
-        code = code.Trim().ToUpperInvariant();
+        gameCode = gameCode.Trim().ToUpperInvariant();
 
-        var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(code);
+        var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(gameCode);
         if (game == null)
             return;
 
@@ -101,7 +100,7 @@ public class GameHub(
             })
             .ToList();
 
-        await Clients.Group(code).SendAsync("TeamProposed", new
+        await Clients.Group(gameCode).SendAsync("TeamProposed", new
         {
             leaderSeat = game.LeaderSeat,
             leaderNickname = leader.Nickname,
@@ -113,17 +112,11 @@ public class GameHub(
 
     public async Task VoteOnTeam(string gameCode, bool isApproved)
     {
-        var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(gameCode);
-        if (game == null) return;
+        var (game, voter) = await GetGameAndPlayerAsync(gameCode);
+        if (game == null || voter == null) return;
 
-        var tempUserId = sessionHelper.GetTempUserId();
-        if (tempUserId == null) return;
-
-        var voter = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId.Value);
-        if (voter == null) return;
-
-        var round = game.Rounds.OrderByDescending(r => r.RoundNumber).FirstOrDefault();
-        if (round == null || round.Status != RoundStatus.VoteOnTeam) return;
+        var round = GetCurrentRound(game, RoundStatus.VoteOnTeam);
+        if (round == null) return;
 
         var team = await teamRepository.GetActiveByRoundIdAsync(round.RoundId);
 
@@ -162,8 +155,7 @@ public class GameHub(
             var voteIsApproved = approvalCount > rejectionCount;
 
             await teamRepository.SaveChangesAsync();
-
-
+            
             if (voteIsApproved)
             {
                 await HandleTeamApproved(game, round, team, gameCode);
@@ -233,16 +225,11 @@ public class GameHub(
 
     public async Task VoteOnMission(string gameCode, bool isSuccess)
     {
-        var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(gameCode);
-        if (game == null) return;
+        var (game, voter) = await GetGameAndPlayerAsync(gameCode);
+        if (game == null || voter == null) return;
 
-        var tempUserId = sessionHelper.GetTempUserId();
-
-        var voter = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
-        if (voter == null) return;
-
-        var round = game.Rounds.OrderByDescending(r => r.RoundNumber).FirstOrDefault();
-        if (round == null || round.Status != RoundStatus.SecretChoices) return;
+        var round = GetCurrentRound(game, RoundStatus.VoteOnTeam);
+        if (round == null) return;
 
         var team = await teamRepository.GetByRoundIdAsync(round.RoundId);
 
@@ -281,6 +268,8 @@ public class GameHub(
             
             team.IsActive = false;
             await teamRepository.SaveChangesAsync();
+            
+            
 
             if (voteIsSuccessful)
             {
@@ -353,6 +342,28 @@ public class GameHub(
         {
             await EndGameAsync(game, GameResult.Human, "3 successful missions");
         }
+    }
+    
+    private Round? GetCurrentRound(Game game, RoundStatus? expectedStatus = null)
+    {
+        var round = game.Rounds.OrderByDescending(r => r.RoundNumber).FirstOrDefault();
+    
+        if (round == null) return null;
+        if (expectedStatus.HasValue && round.Status != expectedStatus.Value) return null;
+    
+        return round;
+    }
+
+    private async Task<(Game? game, GamePlayer? player)> GetGameAndPlayerAsync(string gameCode)
+    {
+        var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(gameCode);
+        if (game == null) return(null, null);
+        
+        var tempUserId = sessionHelper.GetTempUserId();
+        if (tempUserId == null) return (game, null);
+
+        var player = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
+        return (game, player);
     }
 
     private async Task EndGameAsync(Game game, GameResult gameResult, string reason)
