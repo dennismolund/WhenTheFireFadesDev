@@ -170,7 +170,7 @@ public class GameHub(
             }
             else
             {
-                await HandleTeamRejected(game, round, team, gameCode);
+                await HandleTeamRejected(game, round, team);
             }
             
             if (game.Status == GameStatus.Finished)
@@ -189,28 +189,13 @@ public class GameHub(
         }
     }
 
-    private async Task HandleTeamRejected(Game game, Round round, Team team, string gameCode)
+    private async Task HandleTeamRejected(Game game, Round round, Team team)
     {
         game.ConsecutiveRejectedProposals++;
 
         if (game.ConsecutiveRejectedProposals >= GameRules.MaxConsecutiveRejections)
         {
-            game.Status = GameStatus.Finished;
-            game.GameWinner = GameResult.Shapeshifter;
-
-            await gameRepository.SaveChangesAsync();
-
-            await Clients.Group(gameCode).SendAsync("GameEnded", new
-            {
-                winner = "Shapeshifters",
-                reason = "5 consecutive team proposals were rejected",
-                gameResult = GameResult.Shapeshifter
-            });
-
-            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
-            gameRepository.DeleteGame(game);
-            await gameRepository.SaveChangesAsync();
-            
+            await EndGameAsync(game, GameResult.Shapeshifter, "5 consecutive team proposals were rejected");
             return;
         }
 
@@ -299,11 +284,11 @@ public class GameHub(
 
             if (voteIsSuccessful)
             {
-                await HandleVoteSuccessful(game, round, gameCode);
+                await HandleVoteSuccessful(game, round);
             }
             else
             {
-                await HandleVoteSabotaged(game, round, gameCode);
+                await HandleVoteSabotaged(game, round);
             }
 
             if (game.Status == GameStatus.Finished)
@@ -337,7 +322,7 @@ public class GameHub(
         });
     }
 
-    private async Task HandleVoteSabotaged(Game game, Round round, string gameCode)
+    private async Task HandleVoteSabotaged(Game game, Round round)
     {
         game.SabotageCount++;
 
@@ -347,27 +332,13 @@ public class GameHub(
         await gameRepository.SaveChangesAsync();
         await roundRepository.SaveChangesAsync();
 
-        if(game.SabotageCount >= GameRules.SabotagesNeededToLose)
+        if(game.SabotageCount >= GameRules.PointsNeededToWin)
         {
-            
-            game.Status = GameStatus.Finished;
-            game.GameWinner = GameResult.Shapeshifter;
-            await gameRepository.SaveChangesAsync();
-            
-            await Clients.Group(gameCode).SendAsync("GameEnded", new
-            {
-                winner = "Shapeshifters",
-                reason = "3 sabotaged missions",
-                gameResult = GameResult.Shapeshifter
-            });
-            
-            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
-            gameRepository.DeleteGame(game);
-            await gameRepository.SaveChangesAsync();
+            await EndGameAsync(game, GameResult.Shapeshifter, "3 sabotaged missions");
         }
     }
 
-    private async Task HandleVoteSuccessful(Game game, Round round, string gameCode)
+    private async Task HandleVoteSuccessful(Game game, Round round)
     {
         
         game.SuccessCount++;
@@ -378,23 +349,41 @@ public class GameHub(
         await gameRepository.SaveChangesAsync();
         await roundRepository.SaveChangesAsync();
 
-        if (game.SuccessCount >= 3)
+        if (game.SuccessCount >= GameRules.PointsNeededToWin)
         {
-            game.Status = GameStatus.Finished;
-            game.GameWinner = GameResult.Human;
-            await gameRepository.SaveChangesAsync();
-            await Clients.Group(gameCode).SendAsync("GameEnded", new
-            {
-                winner = "Humans",
-                reason = "3 successful missions",
-                gameResult = GameResult.Human
-            });
-            
-            //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
-            gameRepository.DeleteGame(game);
-            await gameRepository.SaveChangesAsync();
+            await EndGameAsync(game, GameResult.Human, "3 successful missions");
         }
     }
+
+    private async Task EndGameAsync(Game game, GameResult gameResult, string reason)
+    {
+        game.Status = GameStatus.Finished;
+        game.GameWinner = gameResult;
+        await gameRepository.SaveChangesAsync();
+    
+        await Task.WhenAll(
+            BroadcastWinner(game, gameResult, reason),
+            CleanupGameAsync(game)
+        );
+    }
+
+    private async Task BroadcastWinner(Game game, GameResult gameResult, string reason)
+    {
+        await Clients.Group(game.ConnectionCode).SendAsync("GameEnded", new
+        {
+            winner = $"{gameResult}",
+            reason,
+            gameResult
+        });
+    }
+    
+    private async Task CleanupGameAsync(Game game)
+    {
+        //Deleting game for now to minimize stored rows in DB, will later be removed for displaying match history.
+        gameRepository.DeleteGame(game);
+        await gameRepository.SaveChangesAsync();
+    }
+    
     public async Task GameStarted(string gameCode)
     {
         await Clients.Group(gameCode).SendAsync("GameStarted");

@@ -2,12 +2,11 @@ namespace Domain.Rules;
 
 public static class GameRules
 {
-    public const int SuccessessNeededToWin = 3;
-    public const int SabotagesNeededToLose = 3;
+    public const int PointsNeededToWin = 3;
     public const int MaxConsecutiveRejections = 5;
 
-    public const int MinPlayerCount = 2; // För testning, gör om till 5 i production
-    public const int MaxPlayerCount = 10;
+    public const int MinPlayerCount = 2;
+    private const int MaxPlayerCount = 10;
     
     public static int GetShapeshifterCount(int playerCount)
     {
