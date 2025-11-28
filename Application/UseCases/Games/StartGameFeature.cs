@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Extensions;
 using Domain.Rules;
 using Domain.Services;
 
@@ -11,13 +12,12 @@ public sealed class StartGameFeature(IGameRepository gameRepository)
     {
         if (game == null)
             throw new ArgumentException("Game not found.");
-        if (game.Status != GameStatus.Lobby)
+        if (!game.IsInLobby())
             throw new InvalidOperationException("Game is not in a state that can be started.");
 
         var players = game.Players.ToList();
-        var playerCount = players.Count;
 
-        if (playerCount < GameRules.MinPlayerCount)
+        if (!game.HasEnoughPlayers())
             throw new InvalidOperationException($"Not enough players to start the game. Minimum is {GameRules.MinPlayerCount}.");
 
         RoleAssignmentService.AssignRoles(players);

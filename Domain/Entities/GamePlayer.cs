@@ -27,7 +27,7 @@ public class GamePlayer
     [Required]
     public bool IsConnected { get; set; } = true;
     
-    public Game Game { get; set; } = default!;
+    public Game Game { get; set; } = null!;
     
     
 }

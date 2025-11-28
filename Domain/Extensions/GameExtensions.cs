@@ -26,9 +26,9 @@ public static class GameExtensions
         return game.Status is GameStatus.Finished;
     }
     
-    public static bool CanStart(this Game game)
+    public static bool HasEnoughPlayers(this Game game)
     {
-        return game is { Status: GameStatus.Lobby, Players.Count: >= GameRules.MinPlayerCount };    
+        return game.Players.Count >= GameRules.MinPlayerCount;    
     }
     
     public static bool HasReachedMaxRejections(this Game game)

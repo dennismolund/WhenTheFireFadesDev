@@ -25,7 +25,7 @@ public class Round
     [Required]
     public int TeamSize { get; init; }
     
-    public Game Game { get; init; } = default!;
+    public Game Game { get; init; } = null!;
 
     public ICollection<Team> Teams { get; set; } = new List<Team>();
     public ICollection<MissionVote> MissionVotes { get; set; } = new List<MissionVote>();

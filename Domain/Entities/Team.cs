@@ -13,7 +13,7 @@ public class Team
     [Required]
     public bool IsActive { get; set; } = true;
     
-    public Round Round { get; init; } = default!;
+    public Round Round { get; init; } = null!;
 
     public ICollection<TeamMember> Members { get; set; } = new List<TeamMember>();
     public ICollection<TeamVote> Votes { get; set; } = new List<TeamVote>();

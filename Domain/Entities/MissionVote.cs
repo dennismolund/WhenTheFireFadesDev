@@ -5,16 +5,16 @@ namespace Domain.Entities;
 public class MissionVote
 {
     [Key]
-    public int MissionVoteId { get; set; }
+    public int MissionVoteId { get; init; }
 
     [Required]
-    public int RoundId { get; set; }
+    public int RoundId { get; init; }
 
     [Required]
-    public int Seat { get; set; }
+    public int Seat { get; init; }
 
     [Required]
-    public bool IsSuccess { get; set; }
+    public bool IsSuccess { get; init; }
 
-    public Round Round { get; set; } = default!;
+    public Round Round { get; init; } = null!;
 }

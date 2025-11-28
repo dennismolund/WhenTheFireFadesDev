@@ -13,13 +13,11 @@ public class SessionHelper(IHttpContextAccessor httpContextAccessor)
     public int GetOrCreateTempUserId()
     {
         var tempUserId = GetTempUserId();
-        if (tempUserId == null)
-        {
-            tempUserId = GenerateTempUserId();
-            SetTempUserId(tempUserId.Value);
-            var playerNickname = $"Player#{tempUserId}";
-            SetPlayerNickname(playerNickname);
-        }
+        if (tempUserId != null) return tempUserId.Value;
+        tempUserId = GenerateTempUserId();
+        SetTempUserId(tempUserId.Value);
+        var playerNickname = $"Player#{tempUserId}";
+        SetPlayerNickname(playerNickname);
         return tempUserId.Value;
     }
 
@@ -47,12 +45,7 @@ public class SessionHelper(IHttpContextAccessor httpContextAccessor)
     {
         Session?.SetString(PlayerNicknameKey, nickname);
     }
-
-    public void ClearPlayerNickname()
-    {
-        Session?.Remove(PlayerNicknameKey);
-    }
-
+    
     public string? GetCurrentGameCode()
     {
         return Session?.GetString(CurrentGameCodeKey);
