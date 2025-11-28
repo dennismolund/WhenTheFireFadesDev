@@ -41,8 +41,12 @@ public class HomeController(
         if (game != null)
             return game.Status switch
             {
-                GameStatus.Lobby => RedirectToAction(nameof(GameController.Lobby), "Game", new { code = gameCode }),
-                GameStatus.InProgress => RedirectToAction(nameof(GameController.Play), "Game", new { code = gameCode }),
+                GameStatus.Lobby => RedirectToAction(nameof(GameController.Lobby), 
+                    "Game", 
+                    new { code = gameCode }),
+                GameStatus.InProgress => RedirectToAction(nameof(GameController.Play), 
+                    "Game", 
+                    new { code = gameCode }),
                 _ => View(),
             };
         

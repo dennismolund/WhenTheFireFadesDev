@@ -6,14 +6,14 @@ namespace Domain.Entities;
 public class GamePlayer
 {
     [Key]
-    public int GamePlayerId { get; set; }
+    public int GamePlayerId { get; init; }
 
     [Required]
-    public int GameId { get; set; }
+    public int GameId { get; init; }
 
-    public int? TempUserId { get; set; }
+    public int? TempUserId { get; init; }
     
-    public string? UserId { get; set; }
+    public string? UserId { get; init; }
 
     [MaxLength(40)]
     public string Nickname { get; set; } = string.Empty;

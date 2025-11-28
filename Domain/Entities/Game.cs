@@ -6,11 +6,11 @@ namespace Domain.Entities;
 public class Game
 {
     [Key]
-    public int GameId { get; set; }
+    public int GameId { get; init; }
 
     [Required]
     [MaxLength(10)]
-    public string ConnectionCode { get; set; } = default!;
+    public string ConnectionCode { get; init; } = default!;
 
     [Required]
     public int LeaderSeat { get; set; }

@@ -6,13 +6,13 @@ namespace Domain.Entities;
 public class Round
 {
     [Key]
-    public int RoundId { get; set; }
+    public int RoundId { get; init; }
 
     [Required]
-    public int GameId { get; set; }
+    public int GameId { get; init; }
 
     [Required]
-    public int RoundNumber { get; set; }
+    public int RoundNumber { get; init; }
 
     [Required]
     public int LeaderSeat { get; set; }
@@ -23,9 +23,9 @@ public class Round
     public RoundResult? Result { get; set; } = RoundResult.Unknown;
 
     [Required]
-    public int TeamSize { get; set; }
+    public int TeamSize { get; init; }
     
-    public Game Game { get; set; } = default!;
+    public Game Game { get; init; } = default!;
 
     public ICollection<Team> Teams { get; set; } = new List<Team>();
     public ICollection<MissionVote> MissionVotes { get; set; } = new List<MissionVote>();

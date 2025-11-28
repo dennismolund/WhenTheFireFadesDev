@@ -89,7 +89,7 @@
                                     {
                                         <span class="badge bg-warning text-dark">👑 Leader</span>
                                     }
-                                    @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer.Role == PlayerRole.Shapeshifter)
+                                    @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer is { Role: PlayerRole.Shapeshifter })
                                     {
                                         <span>👾</span>
                                     }
@@ -162,7 +162,7 @@
                                                         {
                                                             <span class="badge bg-info">You</span>
                                                         }
-                                                        @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer.Role == PlayerRole.Shapeshifter)
+                                                        @if (player.Role == PlayerRole.Shapeshifter && Model.CurrentPlayer is { Role: PlayerRole.Shapeshifter })
                                                         {
                                                             <span>👾</span>
                                                         }

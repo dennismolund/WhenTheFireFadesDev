@@ -1,5 +1,4 @@
-﻿using Domain.Rules;
-
+﻿using Domain.Extensions;
 namespace Web.Hubs;
 
 using Application.Interfaces;
@@ -60,11 +59,11 @@ public class GameHub(
         if (tempUserId == null)
             return;
 
-        var leader = game.Players.SingleOrDefault(p => p.Seat == game.LeaderSeat);
+        var leader = game.Players.FindBySeat(game.LeaderSeat);
         if (leader == null || leader.TempUserId != tempUserId)
             return;
 
-        var currentRound = game.Rounds.SingleOrDefault(r => r.RoundNumber == game.RoundCounter);
+        var currentRound = game.GetCurrentRound();
         if (currentRound == null)
             return;
 
@@ -114,14 +113,15 @@ public class GameHub(
     {
         var (game, voter) = await GetGameAndPlayerAsync(gameCode);
         if (game == null || voter == null) return;
-
-        var round = GetCurrentRound(game, RoundStatus.VoteOnTeam);
-        if (round == null) return;
+        
+        var round = game.GetCurrentRound();
+        if (round == null || !round.IsVotingPhase()) return;
 
         var team = await teamRepository.GetActiveByRoundIdAsync(round.RoundId);
 
         var existingVotes = await teamVoteRepository.GetByTeamAsync(team.TeamId);
-        if (existingVotes.Any(v => v.Seat == voter.Seat))
+        
+        if (existingVotes.HasPlayerVoted(voter.Seat))
         {
             return;
         }
@@ -147,12 +147,12 @@ public class GameHub(
         existingVotes.Add(teamVote);
         var requiredVotes = game.Players.Count - 1; // Everyone except leader votes
 
-        if (existingVotes.Count >= requiredVotes)
+        if (existingVotes.HasAllPlayersVoted(requiredVotes))
         {
             // If majority votes yes the team will be approved
-            var approvalCount = existingVotes.Count(v => v.IsApproved) + 1; // +1 to count leaders vote
-            var rejectionCount = existingVotes.Count(v => !v.IsApproved);
-            var voteIsApproved = approvalCount > rejectionCount;
+            var voteIsApproved = existingVotes.IsApprovedByMajority();
+            var approvalCount = existingVotes.CountApprovals();
+            var rejectionCount = existingVotes.CountRejections();
 
             await teamRepository.SaveChangesAsync();
             
@@ -165,7 +165,7 @@ public class GameHub(
                 await HandleTeamRejected(game, round, team);
             }
             
-            if (game.Status == GameStatus.Finished)
+            if (game.IsFinished())
             {
                 return;
             }
@@ -185,13 +185,13 @@ public class GameHub(
     {
         game.ConsecutiveRejectedProposals++;
 
-        if (game.ConsecutiveRejectedProposals >= GameRules.MaxConsecutiveRejections)
+        if (game.HasReachedMaxRejections())
         {
             await EndGameAsync(game, GameResult.Shapeshifter, "5 consecutive team proposals were rejected");
             return;
         }
 
-        game.LeaderSeat = GetNewLeaderSet(game);
+        game.LeaderSeat = game.GetNextLeaderSeat();
 
         round.Status = RoundStatus.TeamSelection;
 
@@ -200,11 +200,6 @@ public class GameHub(
         await gameRepository.SaveChangesAsync();
         await roundRepository.SaveChangesAsync();
         await teamRepository.SaveChangesAsync();
-    }
-
-    private static int GetNewLeaderSet(Game game)
-    {
-        return (game.LeaderSeat == game.Players.Count) ? 1 : game.LeaderSeat + 1;
     }
 
     private async Task HandleTeamApproved(Game game, Round round, Team team, string gameCode)
@@ -227,14 +222,14 @@ public class GameHub(
     {
         var (game, voter) = await GetGameAndPlayerAsync(gameCode);
         if (game == null || voter == null) return;
-
-        var round = GetCurrentRound(game, RoundStatus.VoteOnTeam);
-        if (round == null) return;
+        
+        var round = game.GetCurrentRound();
+        if (round == null || !round.IsMissionPhase()) return;
 
         var team = await teamRepository.GetByRoundIdAsync(round.RoundId);
 
         var existingVotes = await missionVoteRepository.GetByRoundIdAsync(round.RoundId);
-        if (existingVotes.Any(v => v.Seat == voter.Seat))
+        if (existingVotes.HasPlayerVoted(voter.Seat))
         {
             return;
         }
@@ -260,10 +255,10 @@ public class GameHub(
         var requiredVotes = team.Members.Count;
 
         
-        if (existingVotes.Count >= requiredVotes)
+        if (existingVotes.HasAllPlayersVoted(requiredVotes))
         {
-            var successVotes = existingVotes.Count(v => v.IsSuccess);
-            var failVotes = existingVotes.Count(v => !v.IsSuccess);
+            var successVotes = existingVotes.CountSuccesses();
+            var failVotes = existingVotes.CountFailures();
             var voteIsSuccessful = failVotes == 0;
             
             team.IsActive = false;
@@ -279,8 +274,7 @@ public class GameHub(
             {
                 await HandleVoteSabotaged(game, round);
             }
-
-            if (game.Status == GameStatus.Finished)
+            if (game.IsFinished())
             {
                 return;
             }
@@ -300,7 +294,7 @@ public class GameHub(
         var game = await gameRepository.GetByCodeWithPlayersAndRoundsAsync(gameCode);
         if (game == null) return;
         game.RoundCounter++;
-        game.LeaderSeat = GetNewLeaderSet(game);
+        game.LeaderSeat = game.GetNextLeaderSeat();
         await gameOrchestrator.CreateRoundAsync(game, game.RoundCounter, game.LeaderSeat);
         await gamePlayerRepository.SaveChangesAsync();
 
@@ -321,7 +315,7 @@ public class GameHub(
         await gameRepository.SaveChangesAsync();
         await roundRepository.SaveChangesAsync();
 
-        if(game.SabotageCount >= GameRules.PointsNeededToWin)
+        if(game.HasWinner())
         {
             await EndGameAsync(game, GameResult.Shapeshifter, "3 sabotaged missions");
         }
@@ -338,20 +332,10 @@ public class GameHub(
         await gameRepository.SaveChangesAsync();
         await roundRepository.SaveChangesAsync();
 
-        if (game.SuccessCount >= GameRules.PointsNeededToWin)
+        if (game.HasWinner())
         {
             await EndGameAsync(game, GameResult.Human, "3 successful missions");
         }
-    }
-    
-    private Round? GetCurrentRound(Game game, RoundStatus? expectedStatus = null)
-    {
-        var round = game.Rounds.OrderByDescending(r => r.RoundNumber).FirstOrDefault();
-    
-        if (round == null) return null;
-        if (expectedStatus.HasValue && round.Status != expectedStatus.Value) return null;
-    
-        return round;
     }
 
     private async Task<(Game? game, GamePlayer? player)> GetGameAndPlayerAsync(string gameCode)
@@ -362,7 +346,7 @@ public class GameHub(
         var tempUserId = sessionHelper.GetTempUserId();
         if (tempUserId == null) return (game, null);
 
-        var player = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
+        var player = game.Players.FindByTempUserId(tempUserId);
         return (game, player);
     }
 

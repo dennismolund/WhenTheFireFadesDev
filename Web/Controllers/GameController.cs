@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.Services;
 using Domain.Enums;
+using Domain.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Web.Helpers;
@@ -49,7 +50,7 @@ public class GameController(
             return NotFound();
         }
 
-        if (game.Status == GameStatus.Finished)
+        if (game.IsFinished())
         {
             sessionHelper.ClearCurrentGameCode();
             return RedirectToAction(nameof(Index), "Home");
@@ -59,7 +60,7 @@ public class GameController(
         var authenticatedUserId = sessionHelper.GetAuthenticatedUserId();
         var authenticatedName = sessionHelper.GetAuthenticatedUserName();        
         
-        var existingPlayer = game.Players.SingleOrDefault(p => p.TempUserId == tempUserId);
+        var existingPlayer = game.Players.FindByTempUserId(tempUserId);
         
         if (existingPlayer == null)
         {
@@ -76,7 +77,7 @@ public class GameController(
         {
             ConnectionCode = code,
             Game = game,
-            CurrentPlayer = game.Players.First(p => p.TempUserId == tempUserId),
+            CurrentPlayer = game.Players.FindByTempUserId(tempUserId)!,            
             PlayerCount = game.Players.Count,
         };
 
@@ -108,7 +109,7 @@ public class GameController(
             return RedirectToAction("Index", "Home");
         }
 
-        var player = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
+        var player = game.Players.FindByTempUserId(tempUserId);
         if (player != null)
         {
             gamePlayerRepository.RemovePlayer(player);
@@ -184,7 +185,7 @@ public class GameController(
         {
             return NotFound();
         }
-        if (game.Status != GameStatus.InProgress)
+        if (game.IsInLobby())
         {
             return RedirectToAction(nameof(Lobby), new { code });
         }
@@ -194,7 +195,7 @@ public class GameController(
         {
             return RedirectToAction("Index", "Home");
         }
-        var currentPlayer = game.Players.FirstOrDefault(p => p.TempUserId == tempUserId);
+        var currentPlayer = game.Players.FindByTempUserId(tempUserId);
         if (currentPlayer == null)
         {
             return RedirectToAction("Index", "Home");
@@ -202,7 +203,7 @@ public class GameController(
 
         var currentRound = await roundRepository.GetCurrentRoundSnapshot(game.GameId, game.RoundCounter);
 
-        var currentLeader = game.Players.First(p => p.Seat == game.LeaderSeat);
+        var currentLeader = game.Players.FindBySeat(game.LeaderSeat)!;
 
         var viewModel = new PlayViewModel
         {
@@ -212,36 +213,35 @@ public class GameController(
             CurrentLeader = currentLeader
         };
 
-        if (currentRound.Status == RoundStatus.VoteOnTeam || currentRound.Status == RoundStatus.SecretChoices)
+        if (currentRound.Status is not (RoundStatus.VoteOnTeam or RoundStatus.SecretChoices)) return View(viewModel);
+        
+
+        var activeProposal = currentRound.GetActiveTeam();
+        if (activeProposal == null) return View(viewModel);
+        
+        viewModel.ActiveTeam = activeProposal;
+
+        // Get team members from proposal
+        var proposedSeats = activeProposal.Members.Select(m => m.Seat).ToList();
+        viewModel.ProposedTeamMembers = game.Players
+            .Where(p => proposedSeats.Contains(p.Seat))
+            .OrderBy(p => p.Seat)
+            .ToList();
+
+        // Get votes if in voting phase
+        if (currentRound.IsVotingPhase())
         {
-            var activeProposal = currentRound.Teams.FirstOrDefault(tp => tp.IsActive);
-            if (activeProposal != null)
-            {
-                viewModel.ActiveTeam = activeProposal;
+            viewModel.TeamVotes = activeProposal.Votes.ToList();
+            viewModel.HasCurrentPlayerVoted = activeProposal.Votes.HasPlayerVoted(currentPlayer.Seat);
 
-                // Get team members from proposal
-                var proposedSeats = activeProposal.Members.Select(m => m.Seat).ToList();
-                viewModel.ProposedTeamMembers = game.Players
-                    .Where(p => proposedSeats.Contains(p.Seat))
-                    .OrderBy(p => p.Seat)
-                    .ToList();
-
-                // Get votes if in voting phase
-                if (currentRound.Status == RoundStatus.VoteOnTeam)
-                {
-                    viewModel.TeamVotes = activeProposal.Votes.ToList();
-                    viewModel.HasCurrentPlayerVoted = activeProposal.Votes
-                        .Any(v => v.Seat == currentPlayer.Seat);
-                }
-                // Get mission votes if in mission phase
-                else if (currentRound.Status == RoundStatus.SecretChoices)
-                {
-                    viewModel.MissionVotes = currentRound.MissionVotes.ToList();
-                    viewModel.HasCurrentPlayerVoted = currentRound.MissionVotes
-                        .Any(v => v.Seat == currentPlayer.Seat);
-                }
-            }
         }
+        // Get mission votes if in mission phase
+        else if (currentRound.IsMissionPhase())
+        {
+            viewModel.MissionVotes = currentRound.MissionVotes.ToList();
+            viewModel.HasCurrentPlayerVoted = currentRound.MissionVotes.HasPlayerVoted(currentPlayer.Seat);
+        }
+        
         return View(viewModel);
     }
 }

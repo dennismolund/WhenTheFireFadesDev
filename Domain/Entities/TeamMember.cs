@@ -5,13 +5,13 @@ namespace Domain.Entities;
 public class TeamMember
 {
     [Key]
-    public int TeamMemberId { get; set; }
+    public int TeamMemberId { get; init; }
 
     [Required]
-    public int TeamId { get; set; }
+    public int TeamId { get; init; }
 
     [Required]
-    public int Seat { get; set; }
+    public int Seat { get; init; }
 
-    public Team Team { get; set; } = default!;
+    public Team Team { get; set; } = null!;
 }
