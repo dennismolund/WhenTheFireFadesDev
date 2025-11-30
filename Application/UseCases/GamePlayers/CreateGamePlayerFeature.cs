@@ -5,7 +5,7 @@ using Domain.Enums;
 namespace Application.UseCases.GamePlayers;
 public sealed class CreateGamePlayerFeature(IGamePlayerRepository gamePlayerRepository)
 {
-    public async Task<GamePlayer> ExecuteAsync(Game game, int creatorTempUserId, string? creatorUsername = null, string? userId = null)
+    public async Task ExecuteAsync(Game game, int creatorTempUserId, string? creatorUsername = null, string? userId = null)
     {
         var nextSeat = await gamePlayerRepository.GetNextAvailableSeatAsync(game.GameId)
             .ConfigureAwait(false);
@@ -27,8 +27,6 @@ public sealed class CreateGamePlayerFeature(IGamePlayerRepository gamePlayerRepo
         
         await gamePlayerRepository.SaveChangesAsync()
             .ConfigureAwait(false);
-
-        return player;
     }
 }
 

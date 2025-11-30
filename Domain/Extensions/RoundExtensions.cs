@@ -27,7 +27,9 @@ public static class RoundExtensions
 
     public static Round? GetCurrentRound(this Game game)
     {
-        return game.Rounds.SingleOrDefault(r => r.RoundNumber == game.RoundCounter);
+        return game.Rounds
+            .OrderByDescending(r => r.RoundNumber)
+            .FirstOrDefault();    
     }
     
     public static Team? GetActiveTeam(this Round round)

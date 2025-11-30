@@ -18,7 +18,7 @@ public static class GameExtensions
     
     public static bool IsInProgress(this Game game)
     {
-        return game.Status is GameStatus.Lobby;
+        return game.Status is GameStatus.InProgress;
     }
     
     public static bool IsFinished(this Game game)
