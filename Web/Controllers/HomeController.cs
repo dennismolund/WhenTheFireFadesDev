@@ -52,6 +52,11 @@ public class HomeController(
         
         sessionHelper.ClearCurrentGameCode();
         return View();
+    }
 
+    [HttpGet]
+    public IActionResult GameRules()
+    {
+        return View();
     }
 }

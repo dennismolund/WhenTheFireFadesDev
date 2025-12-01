@@ -1,0 +1,224 @@
+@{
+    ViewData["Title"] = "How to Play";
+}
+
+@section LoginNav {
+    @await Html.PartialAsync("_LoginPartial")
+}
+
+<div class="min-vh-100 bg-dark text-white">
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3">How to Play</h1>
+            <p class="lead text-light opacity-75">When The Fire Fades</p>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Back to Home
+            </a>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                
+                <!-- Game Overview -->
+                <div class="card bg-secondary text-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Game Overview
+                        </h2>
+                        <p class="card-text">
+                            When The Fire Fades is a social deduction game where players must work together to complete missions 
+                            while trying to identify hidden shapeshifters among them. Humans win by completing 3 successful missions, 
+                            while shapeshifters win by sabotaging 3 missions or causing 5 team proposals to be rejected in a row.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Setup -->
+                <div class="card bg-secondary text-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title mb-3">
+                            <i class="bi bi-people me-2"></i>Setup
+                        </h2>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Players:</strong> 5-10 players
+                            </li>
+                            <li class="mb-2">
+                                <strong>Roles:</strong> Each player is secretly assigned as either a Human or a Shapeshifter
+                            </li>
+                            <li class="mb-2">
+                                <strong>Shapeshifters:</strong>
+                                <ul class="mt-2">
+                                    <li>5-6 players: 2 shapeshifters</li>
+                                    <li>7-9 players: 3 shapeshifters</li>
+                                    <li>10 players: 4 shapeshifters</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Game Flow -->
+                <div class="card bg-secondary text-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title mb-3">
+                            <i class="bi bi-arrow-repeat me-2"></i>Game Flow
+                        </h2>
+                        <p>Each round consists of three phases:</p>
+                        
+                        <div class="mt-4">
+                            <h3 class="h5 text-warning">Phase 1: Team Selection</h3>
+                            <p>The round leader selects a team of players to go on the mission. Team sizes vary by round:</p>
+                            <table class="table table-dark table-striped mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>Players</th>
+                                        <th>Round 1</th>
+                                        <th>Round 2</th>
+                                        <th>Round 3</th>
+                                        <th>Round 4</th>
+                                        <th>Round 5</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>3</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                        <td>4</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8-10</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                        <td>4</td>
+                                        <td>5</td>
+                                        <td>5</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4">
+                            <h3 class="h5 text-warning">Phase 2: Team Vote</h3>
+                            <p>
+                                All players (except the leader) vote to approve or reject the proposed team. 
+                                The leader automatically approves their own selection. If the majority approves, 
+                                the mission proceeds. If rejected, a new leader is chosen and proposes a new team.
+                            </p>
+                            <div class="alert alert-danger mt-3">
+                                <strong>Warning:</strong> If 5 team proposals in a row are rejected, 
+                                shapeshifters win immediately!
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h3 class="h5 text-warning">Phase 3: Mission</h3>
+                            <p>
+                                Team members secretly choose whether to gather wood (success) or sabotage the mission. 
+                                Humans must choose success. Shapeshifters can choose either.
+                            </p>
+                            <ul>
+                                <li><strong>Success:</strong> If all votes are success, the mission succeeds</li>
+                                <li><strong>Sabotage:</strong> If any vote is sabotage, the mission fails</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Win Conditions -->
+                <div class="card bg-secondary text-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title mb-3">
+                            <i class="bi bi-trophy me-2"></i>Win Conditions
+                        </h2>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-primary mb-3">
+                                    <div class="card-body">
+                                        <h3 class="h5">👤 Humans Win</h3>
+                                        <p class="mb-0">Complete 3 successful missions</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-danger mb-3">
+                                    <div class="card-body">
+                                        <h3 class="h5">👾 Shapeshifters Win</h3>
+                                        <p class="mb-0">
+                                            Sabotage 3 missions<br>
+                                            OR cause 5 consecutive team rejections
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Tips -->
+                <div class="card bg-secondary text-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title mb-3">
+                            <i class="bi bi-lightbulb me-2"></i>Strategy Tips
+                        </h2>
+                        
+                        <div class="card bg-primary mb-3">
+                            <div class="card-body">
+                                <h3 class="h5 text-white">For Humans:</h3>
+                                <ul>
+                                    <li>Pay attention to voting patterns</li>
+                                    <li>Notice who proposes teams with known saboteurs</li>
+                                    <li>Communicate and build trust with other players</li>
+                                    <li>Don't reject too many teams or shapeshifters auto-win!</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-danger mt-3">
+                            <div class="card-body">
+                                
+                                <h3 class="h5 text-white">For Shapeshifters:</h3>
+                                <ul>
+                                    <li>Blend in by voting with the majority</li>
+                                    <li>Sabotage strategically - not every mission</li>
+                                    <li>Cast suspicion on humans</li>
+                                    <li>Try to get on mission teams to sabotage</li>
+                                    <li>Reject good teams to build toward 5 rejections</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ready to Play -->
+                <div class="text-center mt-5">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-success btn-lg px-5 py-3">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Ready to Play!
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

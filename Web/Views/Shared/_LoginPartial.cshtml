@@ -9,6 +9,12 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-light" asp-controller="Home" asp-action="GameRules">
+                            How to Play
+                        </a>
+                    </li>
+                    
                     @if (SignInManager.IsSignedIn(User))
                     {
                         <li class="nav-item d-flex align-items-center">
