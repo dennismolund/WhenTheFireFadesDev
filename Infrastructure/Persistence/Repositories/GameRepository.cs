@@ -20,7 +20,8 @@ public class GameRepository(ApplicationDbContext db) : IGameRepository
     public async Task<Game?> GetByCodeAsync(string code)
     {
         return await db.Games
-            .Where(g => g.ConnectionCode == code && 
+            .AsNoTracking()
+            .Where(g => g.ConnectionCode == code &&
                         (g.Status == GameStatus.Lobby || g.Status == GameStatus.InProgress))
             .SingleOrDefaultAsync();
 

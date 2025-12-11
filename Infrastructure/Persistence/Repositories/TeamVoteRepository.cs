@@ -14,6 +14,7 @@ public class TeamVoteRepository(ApplicationDbContext db) : ITeamVoteRepository
     public async Task<List<TeamVote>> GetByTeamAsync(int teamId)
     {
         return await db.TeamVotes
+            .AsNoTracking()
             .Where(v => v.TeamId == teamId)
             .ToListAsync();
     }

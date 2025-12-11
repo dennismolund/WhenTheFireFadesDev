@@ -15,6 +15,7 @@ public class GamePlayerRepository(ApplicationDbContext db) : IGamePlayerReposito
     public async Task<int> GetNextAvailableSeatAsync(int gameId)
     {
         var takenSeats = await db.GamePlayers
+            .AsNoTracking()
             .Where(gp => gp.GameId == gameId)
             .OrderBy(gp => gp.Seat)
             .Select(gp => gp.Seat)

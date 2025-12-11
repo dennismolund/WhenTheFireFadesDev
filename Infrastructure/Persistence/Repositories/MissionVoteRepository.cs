@@ -15,6 +15,7 @@ public class MissionVoteRepository (ApplicationDbContext db) : IMissionVoteRepos
     public async Task<List<MissionVote>> GetByRoundIdAsync(int roundId)
     {
         return await db.MissionVotes
+            .AsNoTracking()
             .Where(v => v.RoundId == roundId)
             .ToListAsync();
 

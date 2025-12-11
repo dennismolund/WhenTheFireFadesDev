@@ -34,6 +34,7 @@ public class RoundRepository(ApplicationDbContext db) : IRoundRepository
         try
         {
             return await db.Rounds
+                .AsNoTracking()
                 .Include(r => r.Teams.Where(tp => tp.IsActive))
                     .ThenInclude(tp => tp.Votes)
                 .Include(r => r.Teams.Where(tp => tp.IsActive))
