@@ -21,7 +21,7 @@ public class SessionHelper(IHttpContextAccessor httpContextAccessor)
         return tempUserId.Value;
     }
 
-    public int? GetTempUserId()
+    public virtual int? GetTempUserId()
     {
         return Session?.GetInt32(TempUserIdKey);
     }
