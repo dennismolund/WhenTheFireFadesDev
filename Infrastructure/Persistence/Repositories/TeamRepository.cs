@@ -17,7 +17,7 @@ public class TeamRepository(ApplicationDbContext db) : ITeamRepository
             .Where(tp => tp.RoundId == roundId && tp.IsActive)
             .Include(tp => tp.Members)
             .Include(tp => tp.Votes)
-            .SingleAsync(tp => tp.RoundId == roundId);
+            .SingleAsync();
     }
 
     public async Task<Team> GetActiveByRoundIdAsync(int roundId)
