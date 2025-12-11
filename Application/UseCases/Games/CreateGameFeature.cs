@@ -19,11 +19,9 @@ public class CreateGameFeature(IGameRepository gameRepository)
             SabotageCount = 0,
         };
 
-        await gameRepository.AddGameAsync(game)
-            .ConfigureAwait(false);
+        await gameRepository.AddGameAsync(game);
 
-        await gameRepository.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await gameRepository.SaveChangesAsync();
 
 
         return game;

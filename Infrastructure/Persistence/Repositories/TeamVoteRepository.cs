@@ -8,22 +8,19 @@ public class TeamVoteRepository(ApplicationDbContext db) : ITeamVoteRepository
 {
     public async Task AddTeamVoteAsync(TeamVote teamVote)
     {
-        await db.TeamVotes.AddAsync(teamVote)
-            .ConfigureAwait(false);
+        await db.TeamVotes.AddAsync(teamVote);
     }
 
     public async Task<List<TeamVote>> GetByTeamAsync(int teamId)
     {
         return await db.TeamVotes
             .Where(v => v.TeamId == teamId)
-            .ToListAsync()
-            .ConfigureAwait(false);
+            .ToListAsync();
     }
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await db.SaveChangesAsync();
 
     }
 }

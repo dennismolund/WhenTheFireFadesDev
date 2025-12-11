@@ -9,8 +9,7 @@ public class GamePlayerRepository(ApplicationDbContext db) : IGamePlayerReposito
     public async Task AddPlayerAsync(GamePlayer player)
     {
         await db.GamePlayers
-            .AddAsync(player)
-            .ConfigureAwait(false);
+            .AddAsync(player);
     }
 
     public async Task<int> GetNextAvailableSeatAsync(int gameId)
@@ -19,8 +18,7 @@ public class GamePlayerRepository(ApplicationDbContext db) : IGamePlayerReposito
             .Where(gp => gp.GameId == gameId)
             .OrderBy(gp => gp.Seat)
             .Select(gp => gp.Seat)
-            .ToListAsync()
-            .ConfigureAwait(false);
+            .ToListAsync();
 
 
         var expectedSeat = 1;
@@ -48,8 +46,7 @@ public class GamePlayerRepository(ApplicationDbContext db) : IGamePlayerReposito
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await db.SaveChangesAsync();
     }
     
 }

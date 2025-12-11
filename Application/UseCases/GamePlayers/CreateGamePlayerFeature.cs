@@ -7,8 +7,7 @@ public sealed class CreateGamePlayerFeature(IGamePlayerRepository gamePlayerRepo
 {
     public async Task ExecuteAsync(Game game, int creatorTempUserId, string? creatorUsername = null, string? userId = null)
     {
-        var nextSeat = await gamePlayerRepository.GetNextAvailableSeatAsync(game.GameId)
-            .ConfigureAwait(false);
+        var nextSeat = await gamePlayerRepository.GetNextAvailableSeatAsync(game.GameId);
             
 
         var player = new GamePlayer
@@ -22,11 +21,9 @@ public sealed class CreateGamePlayerFeature(IGamePlayerRepository gamePlayerRepo
             IsConnected = true,
         };
 
-        await gamePlayerRepository.AddPlayerAsync(player)
-            .ConfigureAwait(false);
-        
-        await gamePlayerRepository.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await gamePlayerRepository.AddPlayerAsync(player);
+
+        await gamePlayerRepository.SaveChangesAsync();
     }
 }
 

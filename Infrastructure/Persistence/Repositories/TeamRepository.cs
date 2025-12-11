@@ -8,8 +8,7 @@ public class TeamRepository(ApplicationDbContext db) : ITeamRepository
 {
     public async Task AddTeamAsync(Team team)
     {
-        await db.Teams.AddAsync(team)
-            .ConfigureAwait(false);
+        await db.Teams.AddAsync(team);
     }
 
     public async Task<Team> GetByRoundIdAsync(int roundId)
@@ -18,8 +17,7 @@ public class TeamRepository(ApplicationDbContext db) : ITeamRepository
             .Where(tp => tp.RoundId == roundId && tp.IsActive)
             .Include(tp => tp.Members)
             .Include(tp => tp.Votes)
-            .SingleAsync(tp => tp.RoundId == roundId)
-            .ConfigureAwait(false);
+            .SingleAsync(tp => tp.RoundId == roundId);
     }
 
     public async Task<Team> GetActiveByRoundIdAsync(int roundId)
@@ -28,13 +26,11 @@ public class TeamRepository(ApplicationDbContext db) : ITeamRepository
            .Where(tp => tp.RoundId == roundId && tp.IsActive)
            .Include(tp => tp.Votes)
            .Include(tp => tp.Members)
-           .SingleAsync()
-           .ConfigureAwait(false);
+           .SingleAsync();
     }
 
     public async Task SaveChangesAsync()
     {
-        await db.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await db.SaveChangesAsync();
     }
 }

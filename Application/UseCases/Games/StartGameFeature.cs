@@ -27,8 +27,7 @@ public sealed class StartGameFeature(IGameRepository gameRepository)
         game.RoundCounter = 1;
         game.LeaderSeat = 1;
 
-        await gameRepository.SaveChangesAsync()
-            .ConfigureAwait(false);
+        await gameRepository.SaveChangesAsync();
 
     }
 
