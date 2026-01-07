@@ -4,51 +4,60 @@ namespace Domain.Extensions;
 
 public static class VoteExtensions
 {
-    public static int CountApprovals(this IEnumerable<TeamVote> votes)
+    extension(IEnumerable<TeamVote> votes)
     {
-        return votes.Count(v => v.IsApproved);
+        public int CountApprovals()
+        {
+            return votes.Count(v => v.IsApproved);
+        }
+
+        public int CountRejections()
+        {
+            return votes.Count(v => !v.IsApproved);
+        }
+
+        public bool IsApprovedByMajority()
+        {
+            var teamVotes = votes as TeamVote[] ?? votes.ToArray();
+            var approvalCount = teamVotes.CountApprovals() + 1; // +1 for leader's implicit approval
+            var rejectionCount = teamVotes.CountRejections();
+            return approvalCount > rejectionCount;
+        }
     }
 
-    public static int CountRejections(this IEnumerable<TeamVote> votes)
+    extension(IEnumerable<MissionVote> votes)
     {
-        return votes.Count(v => !v.IsApproved);
+        public int CountSuccesses()
+        {
+            return votes.Count(v => v.IsSuccess);
+        }
+
+        public int CountFailures()
+        {
+            return votes.Count(v => !v.IsSuccess);
+        }
+
+        public bool HasPlayerVoted(int seat)
+        {
+            return votes.Any(v => v.Seat == seat);
+        }
+
+        public bool HasAllPlayersVoted(int requiredVotes)
+        {
+            return votes.Count() >= requiredVotes;
+        }
     }
 
-    public static bool IsApprovedByMajority(this IEnumerable<TeamVote> votes)
+    extension(IEnumerable<TeamVote> votes)
     {
-        var teamVotes = votes as TeamVote[] ?? votes.ToArray();
-        var approvalCount = teamVotes.CountApprovals() + 1; // +1 for leader's implicit approval
-        var rejectionCount = teamVotes.CountRejections();
-        return approvalCount > rejectionCount;
-    }
+        public bool HasPlayerVoted(int seat)
+        {
+            return votes.Any(v => v.Seat == seat);
+        }
 
-    public static int CountSuccesses(this IEnumerable<MissionVote> votes)
-    {
-        return votes.Count(v => v.IsSuccess);
-    }
-
-    public static int CountFailures(this IEnumerable<MissionVote> votes)
-    {
-        return votes.Count(v => !v.IsSuccess);
-    }
-
-    public static bool HasPlayerVoted(this IEnumerable<TeamVote> votes, int seat)
-    {
-        return votes.Any(v => v.Seat == seat);
-    }
-
-    public static bool HasPlayerVoted(this IEnumerable<MissionVote> votes, int seat)
-    {
-        return votes.Any(v => v.Seat == seat);
-    }
-    
-    public static bool HasAllPlayersVoted(this IEnumerable<TeamVote> votes, int requiredVotes)
-    {
-        return votes.Count() >= requiredVotes;
-    }
-    
-    public static bool HasAllPlayersVoted(this IEnumerable<MissionVote> votes, int requiredVotes)
-    {
-        return votes.Count() >= requiredVotes;
+        public bool HasAllPlayersVoted(int requiredVotes)
+        {
+            return votes.Count() >= requiredVotes;
+        }
     }
 }

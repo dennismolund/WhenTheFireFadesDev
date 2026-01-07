@@ -6,45 +6,47 @@ namespace Domain.Extensions;
 
 public static class GameExtensions
 {
-    public static bool IsActive(this Game game)
+    extension(Game game)
     {
-        return game.Status is GameStatus.Lobby or GameStatus.InProgress;
-    }
-    
-    public static bool IsInLobby(this Game game)
-    {
-        return game.Status is GameStatus.Lobby;
-    }
-    
-    public static bool IsInProgress(this Game game)
-    {
-        return game.Status is GameStatus.InProgress;
-    }
-    
-    public static bool IsFinished(this Game game)
-    {
-        return game.Status is GameStatus.Finished;
-    }
-    
-    public static bool HasEnoughPlayers(this Game game)
-    {
-        return game.Players.Count >= GameRules.MinPlayerCount;    
-    }
-    
-    public static bool HasReachedMaxRejections(this Game game)
-    {
-        return game.ConsecutiveRejectedProposals >= GameRules.MaxConsecutiveRejections;
-    }
+        public bool IsActive()
+        {
+            return game.Status is GameStatus.Lobby or GameStatus.InProgress;
+        }
 
-    public static int GetNextLeaderSeat(this Game game)
-    {
-        return game.LeaderSeat == game.Players.Count ? 1 : game.LeaderSeat + 1;
-    }
+        public bool IsInLobby()
+        {
+            return game.Status is GameStatus.Lobby;
+        }
 
-    public static bool HasWinner(this Game game)
-    {
-        return game.SuccessCount >= GameRules.PointsNeededToWin || 
-               game.SabotageCount >= GameRules.PointsNeededToWin;
+        public bool IsInProgress()
+        {
+            return game.Status is GameStatus.InProgress;
+        }
+
+        public bool IsFinished()
+        {
+            return game.Status is GameStatus.Finished;
+        }
+
+        public bool HasEnoughPlayers()
+        {
+            return game.Players.Count >= GameRules.MinPlayerCount;    
+        }
+
+        public bool HasReachedMaxRejections()
+        {
+            return game.ConsecutiveRejectedProposals >= GameRules.MaxConsecutiveRejections;
+        }
+
+        public int GetNextLeaderSeat()
+        {
+            return game.LeaderSeat == game.Players.Count ? 1 : game.LeaderSeat + 1;
+        }
+
+        public bool HasWinner()
+        {
+            return game.SuccessCount >= GameRules.PointsNeededToWin || 
+                   game.SabotageCount >= GameRules.PointsNeededToWin;
+        }
     }
-    
 }

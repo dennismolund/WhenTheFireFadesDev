@@ -5,35 +5,41 @@ namespace Domain.Extensions;
 
 public static class RoundExtensions
 {
-    public static bool RequiresTeamSelection(this Round round)
+    extension(Round round)
     {
-        return round.Status == RoundStatus.TeamSelection;
+        public bool RequiresTeamSelection()
+        {
+            return round.Status == RoundStatus.TeamSelection;
+        }
+
+        public bool IsVotingPhase()
+        {
+            return round.Status == RoundStatus.VoteOnTeam;
+        }
+
+        public bool IsMissionPhase()
+        {
+            return round.Status == RoundStatus.SecretChoices;
+        }
+
+        public bool IsCompleted()
+        {
+            return round.Status == RoundStatus.Completed;
+        }
+
+        public Team? GetActiveTeam()
+        {
+            return round.Teams.FirstOrDefault(t => t.IsActive);
+        }
     }
 
-    public static bool IsVotingPhase(this Round round)
+    extension(Game game)
     {
-        return round.Status == RoundStatus.VoteOnTeam;
-    }
-
-    public static bool IsMissionPhase(this Round round)
-    {
-        return round.Status == RoundStatus.SecretChoices;
-    }
-
-    public static bool IsCompleted(this Round round)
-    {
-        return round.Status == RoundStatus.Completed;
-    }
-
-    public static Round? GetCurrentRound(this Game game)
-    {
-        return game.Rounds
-            .OrderByDescending(r => r.RoundNumber)
-            .FirstOrDefault();    
-    }
-    
-    public static Team? GetActiveTeam(this Round round)
-    {
-        return round.Teams.FirstOrDefault(t => t.IsActive);
+        public Round? GetCurrentRound()
+        {
+            return game.Rounds
+                .OrderByDescending(r => r.RoundNumber)
+                .FirstOrDefault();    
+        }
     }
 }
